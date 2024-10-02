@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+
+
+
+/* Add this to your CSS file ADD TO CART*/
+.animate-glow {
+  animation: glow 0.5s infinite alternate;
+}
+
+@keyframes glow {
+  from {
+    box-shadow: 0 0 5px rgba(34, 197, 94, 0.5);
+  }
+  to {
+    box-shadow: 0 0 15px rgba(34, 197, 94, 1);
+  }
+}
+
+/* For the success message transition */
+.transition-opacity {
+  transition: opacity 0.5s ease-in-out;
+}
+
+
+
