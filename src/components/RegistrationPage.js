@@ -30,7 +30,7 @@ const RegistrationPage = () => {
               navigate('/verify-otp', { state: { phoneNumber: formattedPhoneNumber, otp: response.data.otp } });
           }, 2000);
       } catch (error) {
-          console.error('Error during registration:', error);
+          console.error('Error during registration:x', error);
           setErrorMessage(error.response?.data?.message || 'Error during registration.');
       }
   };

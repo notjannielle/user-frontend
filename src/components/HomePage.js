@@ -42,6 +42,13 @@ const HomePage = ({ selectedCategories, selectedBranch, onCategoryChange, onBran
     setIsSidebarOpen(true);
   };
 
+
+  const clearCart = () => {
+    setCartItems([]); // Clear the cart state
+    Cookies.remove('cartItems'); // Remove cart cookies
+  };
+  
+
   const addToCart = (product, branch, variantIndex) => {
     if (!product.branches || !product.branches[branch]) {
       console.error('Invalid branch or product');
@@ -125,6 +132,11 @@ const HomePage = ({ selectedCategories, selectedBranch, onCategoryChange, onBran
     setSelectedProduct(null);
   };
 
+  const handleBranchSelect = (branch) => {
+    onBranchChange(branch);
+    clearCart(); // Clear the cart when changing branches
+  };
+
   const totalCartItems = cartItems.reduce((total, item) => total + item.quantity, 0);
 
   if (loading) return <p>Loading products...</p>;
@@ -138,8 +150,9 @@ const HomePage = ({ selectedCategories, selectedBranch, onCategoryChange, onBran
         selectedCategories={selectedCategories}
         selectedBranch={selectedBranch}
         onCategoryChange={onCategoryChange}
-        onBranchChange={onBranchChange}
-      /> 
+        onBranchChange={handleBranchSelect} // Use the new handleBranchSelect function
+        onClearCart={clearCart} // Pass the clearCart function
+      />
       <ProductList 
         selectProduct={selectProduct} 
         selectedCategories={selectedCategories} 

@@ -7,22 +7,22 @@ const Filter = ({
   selectedCategories = [], 
   selectedBranch, 
   onCategoryChange, 
-  onBranchChange 
+  onBranchChange,
+  onClearCart // Add this line
 }) => {
   const handleCategoryChange = (category) => {
     if (selectedCategories.includes(category)) {
-      onCategoryChange(selectedCategories.filter((c) => c !== category)); // Remove category if already selected
+      onCategoryChange(selectedCategories.filter((c) => c !== category));
     } else {
-      onCategoryChange([...selectedCategories, category]); // Add category if not selected
+      onCategoryChange([...selectedCategories, category]);
     }
   };
 
   const handleBranchChange = (branch) => {
     onBranchChange(branch);
-    // Store the selected branch in cookies
-    Cookies.set('selectedBranch', branch, { expires: 1 });
+    Cookies.set('selectedBranch', branch, { expires: 6 });
+    onClearCart(); // Clear the cart when changing branches
     window.location.reload(); // This will refresh the page
-
   };
 
   return (
@@ -48,7 +48,7 @@ const Filter = ({
           onChange={(e) => handleBranchChange(e.target.value)}
           className="mt-1 block w-full p-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
         >
-          <option value="all">Select All</option>
+          <option value="all">Select Branches</option>
           {branches.map((branch) => (
             <option key={branch} value={branch}>
               {branch.charAt(0).toUpperCase() + branch.slice(1)}
