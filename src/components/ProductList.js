@@ -11,6 +11,13 @@ const ProductList = ({ selectProduct, selectedCategories, selectedBranch, produc
     return categoryMatch && branchMatch;
   });
 
+  const capitalizeFirstLetter = (string) => {
+    return string
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
   return (
     <div className="grid grid-cols-1 gap-4 p-4">
       {filteredProducts.length > 0 ? (
@@ -29,12 +36,12 @@ const ProductList = ({ selectProduct, selectedCategories, selectedBranch, produc
                 <h2 className={`text-xl font-bold ${availableVariants.length === 0 ? 'line-through' : ''}`} 
                     style={{ 
                       WebkitBoxOrient: 'vertical', 
-                      WebkitLineClamp: 2 // Limit to 2 lines
+                      WebkitLineClamp: 2 
                     }}>
                   {product.name}
                 </h2>
                 <div className={`mt-2 text-sm ${availableVariants.length === 0 ? 'line-through' : ''}`}>
-                  <strong>Available:</strong> {availableVariants.length > 0 ? availableVariants.map(v => v.name).join(', ') : 'None available'}
+                  <strong>Available:</strong> {availableVariants.length > 0 ? availableVariants.map(v => capitalizeFirstLetter(v.name)).join(', ') : 'None available'}
                 </div>
               </div>
               <div className="flex-shrink-0 mt-2">

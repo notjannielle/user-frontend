@@ -13,7 +13,7 @@ import FloatingCart from './components/FloatingCart';
 import Cookies from 'js-cookie';
 import OrderPage from './components/OrderPage';
 import BranchSelectModal from './components/BranchSelectModal';
-
+import SupportPage from './components/SupportPage';
 const App = () => {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedBranch, setSelectedBranch] = useState("all");
@@ -103,6 +103,8 @@ const App = () => {
           <Route path="/verify-otp" element={<OTPVerificationPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/orders" element={<OrderPage />} />
+          <Route path="/support" element={<SupportPage />} />
+
         </Routes>
         <Navbar isLoggedIn={isLoggedIn} toggleCart={toggleCart} />
         <FloatingCart 

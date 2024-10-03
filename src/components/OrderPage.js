@@ -12,11 +12,11 @@ const OrderPage = () => {
 
   useEffect(() => {
     if (!userData || !token) {
-      setError('User is not logged in.');
+      setError(' Sorry! You can only track your past orders using the order tracking page provided after you checkout.');
       setLoading(false);
       return;
     }
-
+  
     const { phoneNumber } = JSON.parse(userData);
 
     const fetchOrders = async () => {

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { TfiClose } from "react-icons/tfi";
 
-const FloatingCart = ({ cartItems, removeFromCart, openCheckout, isOpen, onToggle }) => {
+const FloatingCart = ({ cartItems, removeFromCart, addToCart, openCheckout, isOpen, onToggle }) => {
   const cartRef = useRef(null);
 
   useEffect(() => {
@@ -25,16 +25,21 @@ const FloatingCart = ({ cartItems, removeFromCart, openCheckout, isOpen, onToggl
   const groupedByBranch = cartItems.reduce((acc, item) => {
     if (!acc[item.branch]) acc[item.branch] = {};
     
+    const productName = item.product.name || 'Unknown Product';
     const variantName = item.variant || 'Unknown Variant';
     
-    if (!acc[item.branch][variantName]) {
-      acc[item.branch][variantName] = {
-        product: item.product,
+    if (!acc[item.branch][productName]) {
+      acc[item.branch][productName] = {};
+    }
+    
+    if (!acc[item.branch][productName][variantName]) {
+      acc[item.branch][productName][variantName] = {
         quantity: item.quantity,
         price: item.price,
+        productId: item.productId, // Ensure this is correctly populated
       };
     } else {
-      acc[item.branch][variantName].quantity += item.quantity;
+      acc[item.branch][productName][variantName].quantity += item.quantity;
     }
     return acc;
   }, {});
@@ -46,6 +51,24 @@ const FloatingCart = ({ cartItems, removeFromCart, openCheckout, isOpen, onToggl
     if (cartItems.length > 0) {
       openCheckout();
       onToggle();
+    }
+  };
+
+  const capitalizeFirstLetter = (string) => {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  };
+
+  const handleAddToCart = (productId, branch, variantIndex) => {
+    console.log(`Attempting to add productId: ${productId}, branch: ${branch}, variantIndex: ${variantIndex}`);
+    if (productId && variantIndex >= 0) {
+      const productItem = cartItems.find(item => item.productId === productId);
+      if (productItem) {
+        addToCart(productItem.product, branch, variantIndex);
+      } else {
+        console.error(`Product not found in cartItems for productId: ${productId}`);
+      }
+    } else {
+      console.error(`Invalid product or variant index: ${productId}, branch: ${branch}, variantIndex: ${variantIndex}`);
     }
   };
 
@@ -62,31 +85,56 @@ const FloatingCart = ({ cartItems, removeFromCart, openCheckout, isOpen, onToggl
         </button>
         <div className="flex flex-col h-full">
           <h2 className="text-xl font-bold mb-4 p-2">Cart</h2>
+          <p className="text-sm text-gray-600 px-2 mb-2">
+            Note: Your cart will reset if you refresh the page!
+          </p>
           <div className="flex-1 overflow-y-auto">
             {totalProducts > 0 ? (
               <>
-                {Object.keys(groupedByBranch).map((branch) => (
+                {Object.keys(groupedByBranch).map(branch => (
                   <div key={branch} className="mb-4">
-                    <h3 className="font-bold p-2">{branch}</h3>
-                    {Object.keys(groupedByBranch[branch]).map((variantName) => {
-                      const { product, quantity, price } = groupedByBranch[branch][variantName];
+                    <h3 className="font-bold p-2">{capitalizeFirstLetter(branch)} Branch</h3>
+                    {Object.keys(groupedByBranch[branch]).map(productName => (
+                      <div key={productName} className="border p-2 mb-2">
+                        <p className="font-bold">{productName}</p>
+                        {Object.keys(groupedByBranch[branch][productName]).map(variantName => {
+                          const { quantity, price, productId } = groupedByBranch[branch][productName][variantName];
 
-                      return (
-                        <div key={variantName} className="border p-2 mb-2">
-                          <p className="font-bold">{product ? product.name : 'Unknown Product'}</p>
-                          <p>{variantName} x {quantity}</p>
-                          <p>Price: ₱{(price * quantity).toFixed(2)}</p>
-                          <button onClick={() => removeFromCart(product ? product._id : null)} className="bg-red-500 text-white p-1 rounded mt-2">
-                            Remove
-                          </button>
-                        </div>
-                      );
-                    })}
+                          const productItem = cartItems.find(item => item.productId === productId);
+                          if (!productItem || !productItem.product) return null; // Ensure product exists
+
+                          const branchVariants = productItem.product.branches[branch];
+                          const variantIndex = branchVariants.findIndex(v => v.name.trim().toLowerCase() === variantName.trim().toLowerCase());
+
+                          console.log(`Product: ${productName}, Variant: ${variantName}, Variant Index: ${variantIndex}`);
+
+                          return (
+                            <div key={variantName} className="ml-4">
+                              <p>{variantName} x {quantity} - ₱{(price * quantity).toFixed(2)}</p>
+                              <div className="flex items-center mt-2">
+                                <button 
+                                  onClick={() => removeFromCart(productId, variantName)} 
+                                  className="bg-red-500 text-white p-1 rounded"
+                                >
+                                  Remove
+                                </button>
+                                <button 
+                                  onClick={() => handleAddToCart(productId, branch, variantIndex)} 
+                                  className="bg-blue-500 text-white p-1 rounded ml-2"
+                                >
+                                  Add More
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ))}
                   </div>
                 ))}
               </>
             ) : (
-              <p>Your cart is empty.</p>
+              <p className="p-2">Oops! Your cart is empty. 🛒</p>
             )}
           </div>
           <div className="p-4">

@@ -7,7 +7,7 @@ const ParentComponent = () => {
 
   const proceedToOrder = (orderData) => {
     console.log("Order placed:", orderData);
-    alert("Order placed successfully!");
+    alert("Order placed successfully!x");
     closeCheckout(); // Close checkout modal
   };
 

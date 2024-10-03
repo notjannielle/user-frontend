@@ -41,3 +41,28 @@ code {
 
 
 
+.pulsating-circle {
+  position: absolute;
+  width: 5em; /* Adjust size as needed */
+  height: 70px; /* Adjust size as needed */
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3); /* Adjust color */
+  animation: pulsate 1.5s infinite;
+  transform: scale(0);
+  z-index: 1; /* Make sure it's behind the button */
+}
+
+@keyframes pulsate {
+  0% {
+    transform: scale(0.8);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(0.8);
+    opacity: 1;
+  }
+}
