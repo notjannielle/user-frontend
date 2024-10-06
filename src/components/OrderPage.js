@@ -12,11 +12,11 @@ const OrderPage = () => {
 
   useEffect(() => {
     if (!userData || !token) {
-      setError(' Sorry! You can only track your past orders using the order tracking page provided after you checkout.');
+      setError('Login to view your orders.');
       setLoading(false);
       return;
     }
-  
+
     const { phoneNumber } = JSON.parse(userData);
 
     const fetchOrders = async () => {
@@ -27,12 +27,11 @@ const OrderPage = () => {
           }
         });
         
-        // Sort orders in descending order based on orderNumber
         const sortedOrders = response.data.sort((a, b) => b.orderNumber.localeCompare(a.orderNumber));
         setOrders(sortedOrders);
       } catch (error) {
         console.error('Error fetching orders:', error);
-        setError('Failed to load orders.');
+        setError('We don\'t see any orders created for this account. 😔');
       } finally {
         setLoading(false);
       }
@@ -41,28 +40,18 @@ const OrderPage = () => {
     fetchOrders();
   }, [userData, token]);
 
-  // Function to format the order date and time
   const formatOrderDateTime = (orderNumber) => {
-    // Remove the prefix "ORD-"
     const numberPart = orderNumber.replace('ORD-', '');
+    const year = `20${numberPart.substring(0, 2)}`;
+    const month = numberPart.substring(2, 4);
+    const day = numberPart.substring(4, 6);
+    const hour = numberPart.substring(6, 8);
+    const minute = numberPart.substring(8, 10);
 
-    const year = `20${numberPart.substring(0, 2)}`; // Extract year
-    const month = numberPart.substring(2, 4); // Extract month
-    const day = numberPart.substring(4, 6); // Extract day
-    const hour = numberPart.substring(6, 8); // Extract hour
-    const minute = numberPart.substring(8, 10); // Extract minute
-
-    // Create a date object using a valid ISO 8601 format
     const dateString = `${year}-${month}-${day}T${hour}:${minute}:00`;
     const date = new Date(dateString);
 
-    // Check for invalid date
-    if (isNaN(date.getTime())) {
-      return 'Invalid date';
-    }
-
-    // Format the date to a readable string
-    return date.toLocaleString();
+    return isNaN(date.getTime()) ? 'Invalid date' : date.toLocaleString();
   };
 
   if (loading) {
@@ -70,14 +59,20 @@ const OrderPage = () => {
   }
 
   if (error) {
-    return <div>{error}</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-lg text-center text-red-600">{error}</p>
+      </div>
+    );
   }
 
   return (
     <div className="p-4">
       <h1 className="text-xl font-bold mb-4">Your Orders</h1>
       {orders.length === 0 ? (
-        <p>No orders found.</p>
+        <div className="flex items-center justify-center min-h-screen">
+          <p className="text-lg text-center">No orders found. <Link to="/login" className="text-blue-500 hover:underline">Login to create orders.</Link></p>
+        </div>
       ) : (
         <div>
           {orders.map((order) => (
@@ -88,7 +83,6 @@ const OrderPage = () => {
               </p>
               <p>Status: {order.status}</p>
               <p>Total Price: ₱{order.total}</p>
-              {/* Display more order details as needed */}
             </Link>
           ))}
         </div>

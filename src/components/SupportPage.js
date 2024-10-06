@@ -1,5 +1,4 @@
 import React from 'react';
-import { FaFacebook } from 'react-icons/fa';
 import { FaCheckCircle } from 'react-icons/fa';
 import { FaFacebookMessenger } from 'react-icons/fa'; // Messenger icon
 
@@ -30,8 +29,8 @@ const SupportPage = () => {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
-      <div className="bg-white text-gray-800 rounded-lg w-full max-w-sm shadow-lg p-6">
-        <header className="font-bold text-2xl mb-10 text-center">Contact Us</header>
+      <div className="bg-white text-gray-800 rounded-lg w-full sm:max-w-md shadow-lg p-6 font-poppins">
+        <header className="font-bold text-2xl md:text-3xl mb-10 text-center">Contact Us</header>
         
         {/* Personal Page Section */}
         <div className="flex items-center mb-4">
@@ -41,10 +40,15 @@ const SupportPage = () => {
             className="h-12 w-12 rounded-full mr-2"
           />
           <div className="flex-grow text-center">
-            <div className="font-semibold text-lg">
+            <div className="font-semibold text-lg md:text-xl">
               Rodney Escobar <FaCheckCircle className="inline text-blue-500" />
             </div>
-            <a href="https://www.facebook.com/profile.php?id=100082865724018" target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline">
+            <a 
+              href="https://www.facebook.com/profile.php?id=100082865724018" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-sm text-blue-600 hover:underline"
+            >
               View Profile
             </a>
           </div>
@@ -67,9 +71,14 @@ const SupportPage = () => {
                 className="h-12 w-12 rounded-full"
               />
               <div className="flex flex-col flex-grow px-3 text-center">
-                <div className="font-semibold text-lg">{branch.name}</div>
-                <div className="text-sm">{branch.address}</div>
-                <a href={branch.profileUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline">
+                <div className="font-semibold text-lg md:text-xl">{branch.name}</div>
+                <div className="text-sm md:text-base">{branch.address}</div>
+                <a 
+                  href={branch.profileUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-sm text-blue-600 hover:underline"
+                >
                   View Profile
                 </a>
               </div>
@@ -85,10 +94,10 @@ const SupportPage = () => {
           ))}
         </div>
 
-        <div className="mt-4 text-center text-sm text-gray-600">
-          🕐 1:00pm - 11:00pm daily
+        <div className="mt-4 text-center text-sm text-gray-600 md:text-base">
+          Responses are typically 🕐 1:00pm - 11:00pm.
         </div>
-        <div className="mt-2 text-center text-sm text-gray-600">
+        <div className="mt-2 text-center text-sm text-gray-600 md:text-base">
           If you have any questions or concerns about your order, don't hesitate to message us!
         </div>
       </div>

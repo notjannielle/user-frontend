@@ -32,8 +32,14 @@ const ProfilePage = () => {
         console.error('Error fetching user profile:', error);
         setError('Failed to fetch user profile.');
     }
-};
+  };
 
+  const handleLogout = () => {
+    Cookies.remove('isLoggedIn');
+    Cookies.remove('token');
+    Cookies.remove('userData'); // Remove any other relevant cookies
+    navigate('/login'); // Redirect to login page
+  };
 
   if (!userProfile) {
     return <div>Loading...</div>; // You can also add a loading spinner
@@ -55,8 +61,14 @@ const ProfilePage = () => {
           </div>
         </div>
         <div className="flex justify-center">
-          <button className="px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700 transition duration-200">
+          {/* <button className="px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700 transition duration-200">
             Edit Profile
+          </button> */}
+          <button 
+            onClick={handleLogout} 
+            className="px-4 py-2 text-white bg-red-600 rounded hover:bg-red-700 transition duration-200"
+          >
+            Logout
           </button>
         </div>
       </div>

@@ -1,14 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BsBasket } from "react-icons/bs";
 
 const ProductList = ({ selectProduct, selectedCategories, selectedBranch, products }) => {
+  const [searchQuery, setSearchQuery] = useState(''); // Step 1: State for search query
+
   const filteredProducts = products.filter((product) => {
     const categoryMatch = selectedCategories.length === 0 || selectedCategories.includes(product.category);
     const branchVariants = product.branches && product.branches[selectedBranch];
     const branchMatch = selectedBranch === 'all' || 
       (Array.isArray(branchVariants) && branchVariants.some(variant => variant.available));
+    
+    // Step 3: Match against search query
+    const nameMatch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
 
-    return categoryMatch && branchMatch;
+    return categoryMatch && branchMatch && nameMatch; // Include nameMatch
   });
 
   const capitalizeFirstLetter = (string) => {
@@ -19,43 +24,54 @@ const ProductList = ({ selectProduct, selectedCategories, selectedBranch, produc
   };
 
   return (
-    <div className="grid grid-cols-1 gap-4 p-4">
-      {filteredProducts.length > 0 ? (
-        filteredProducts.map((product) => {
-          const branchVariants = product.branches && product.branches[selectedBranch] || [];
-          const availableVariants = branchVariants.filter(variant => variant.available);
+    <div>
+      {/* Step 2: Search Input */}
 
-          return (
-            <div 
-              key={product._id}
-              className={`border p-4 rounded relative flex cursor-pointer ${availableVariants.length === 0 ? 'line-through text-gray-500' : ''}`}
-              onClick={() => availableVariants.length > 0 && selectProduct(product)}
-            >
-              <img src={product.image} alt={product.name} className="w-24 h-24 object-cover mr-4" />
-              <div className="flex-grow">
-                <h2 className={`text-xl font-bold ${availableVariants.length === 0 ? 'line-through' : ''}`} 
-                    style={{ 
-                      WebkitBoxOrient: 'vertical', 
-                      WebkitLineClamp: 2 
-                    }}>
-                  {product.name}
-                </h2>
-                <div className={`mt-2 text-sm ${availableVariants.length === 0 ? 'line-through' : ''}`}>
-                  <strong>Available:</strong> {availableVariants.length > 0 ? availableVariants.map(v => capitalizeFirstLetter(v.name)).join(', ') : 'None available'}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 p-4">
+      {filteredProducts.length > 0 ? (
+          filteredProducts.map((product) => {
+            const branchVariants = product.branches && product.branches[selectedBranch] || [];
+            const availableVariants = branchVariants.filter(variant => variant.available);
+
+            return (
+              <div 
+                key={product._id}
+                className={`relative overflow-hidden rounded-lg shadow-lg cursor-pointer transition-transform duration-300 transform hover:scale-105 ${availableVariants.length === 0 ? 'line-through text-gray-500' : 'bg-white border border-gray-300'}`}
+                onClick={() => availableVariants.length > 0 && selectProduct(product)}
+              >
+                {/* Image Section */}
+                <img 
+                  src={product.image} 
+                  alt={product.name} 
+                  className="h-48 w-full object-cover transition-transform duration-300 transform hover:scale-110" 
+                />
+                {/* Content Section */}
+                <div className="p-4">
+                  <h2 className={`text-lg font-semibold mb-2 ${availableVariants.length === 0 ? 'line-through' : ''}`}>
+                    {product.name}
+                  </h2>
+                  <div className={`text-sm mb-2 ${availableVariants.length === 0 ? 'line-through' : ''}`}>
+                    <strong>Available:</strong> {availableVariants.length > 0 ? availableVariants.map(v => capitalizeFirstLetter(v.name)).join(', ') : 'None available'}
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <p className={`text-xl font-bold ${availableVariants.length === 0 ? 'line-through text-gray-500' : ''}`}>₱{product.price}</p>
+                    <div className="relative">
+                      <BsBasket className="text-gray-700 text-2xl opacity-0 transition-opacity duration-300 hover:opacity-100" />
+                    </div>
+                  </div>
+                </div>
+                {/* Overlay for hover effect */}
+                <div className="absolute inset-0 bg-black bg-opacity-25 opacity-0 transition-opacity duration-300 hover:opacity-100 flex items-center justify-center">
+                  <BsBasket className="text-white text-2xl" />
                 </div>
               </div>
-              <div className="flex-shrink-0 mt-2">
-                <p className="text-lg pl-2 font-semibold">₱{product.price}</p>
-              </div>
-              <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-200 bg-black bg-opacity-30 rounded">
-                <BsBasket className="text-white text-2xl" />
-              </div>
-            </div>
-          );
-        })
-      ) : (
-        <p>No products available for the selected filters.</p>
-      )}
+            );
+          })
+        ) : (
+          <p>No products available for the selected filters.</p>
+        )}
+      </div>
     </div>
   );
 };

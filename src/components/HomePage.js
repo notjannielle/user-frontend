@@ -22,6 +22,8 @@ const HomePage = ({ selectedCategories, selectedBranch, onCategoryChange, onBran
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState(''); // State for search term
+
   const [cartItems, setCartItems] = useState(() => {
     const savedItems = Cookies.get('cartItems');
     return savedItems ? JSON.parse(savedItems) : [];
@@ -52,6 +54,17 @@ const HomePage = ({ selectedCategories, selectedBranch, onCategoryChange, onBran
       return true; // Required for Chrome to show the prompt
     }
   };
+
+
+
+  const handleSearchChange = (term) => {
+    setSearchTerm(term); // Update the search term
+  };
+
+  // Filter products based on search term
+  const filteredProducts = products.filter(product =>
+    product.name.toLowerCase().includes(searchTerm.toLowerCase()) // Adjust based on your product structure
+  );
 
   const clearCart = () => {
     setCartItems([]); // Clear the cart state
@@ -208,6 +221,8 @@ const HomePage = ({ selectedCategories, selectedBranch, onCategoryChange, onBran
   const handleBranchSelect = (branch) => {
     onBranchChange(branch);
     clearCart(); // Clear the cart when changing branches
+    Cookies.remove('cartItems'); // Clear cookies
+
   };
 
   const totalCartItems = cartItems.reduce((total, item) => total + item.quantity, 0);
@@ -217,6 +232,9 @@ const HomePage = ({ selectedCategories, selectedBranch, onCategoryChange, onBran
 
   return (
     <div className="relative pb-16">
+<div className="flex items-center justify-center">
+  <img src="/logo.png" className="w-20 mt-2 h-20" alt="Logo" />
+</div>
       <Filter 
         categories={["Disposables", "Pods", "Juices", "Devices", "Misc"]}
         branches={["main", "second", "third"]}
@@ -225,13 +243,15 @@ const HomePage = ({ selectedCategories, selectedBranch, onCategoryChange, onBran
         onCategoryChange={onCategoryChange}
         onBranchChange={handleBranchSelect}
         onClearCart={clearCart} 
+        onSearchChange={handleSearchChange} // Pass the search change handler
+
       />
       
       <ProductList 
         selectProduct={selectProduct} 
         selectedCategories={selectedCategories} 
         selectedBranch={selectedBranch} 
-        products={products} 
+        products={filteredProducts} // Use filtered products
       />
 <div className="fixed bottom-20 right-4">
   <div className="relative">

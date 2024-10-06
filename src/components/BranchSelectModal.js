@@ -36,7 +36,7 @@ const BranchSelectModal = ({ onClose, onSelect }) => {
       <div className="bg-white p-8 rounded-lg shadow-lg max-w-4xl w-full">
         <h2 className="text-2xl font-bold mb-4">👋 Welcome to Escobar Vape Shop!</h2>
         <span className="block text-lg mb-4">
-           Please choose a branch for pickup to be prioritized. (No worries, you can change it later!)
+           Please choose a branch for pickup.
         </span>
         
         <div className="lafka-branch-selection grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">

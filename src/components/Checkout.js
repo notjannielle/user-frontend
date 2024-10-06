@@ -26,13 +26,17 @@ const Checkout = ({ cartItems, closeCheckout, proceedToOrder }) => {
     };
   }, [closeCheckout]);
 
+  
   const handleGuestCheckout = async (e) => {
     e.preventDefault();
     const orderData = createOrderData(guestInfo);
 
     try {
       const response = await axios.post(`${process.env.REACT_APP_API_URL}/orders`, orderData);
+      
       proceedToOrder(response.data);
+      Cookies.remove('cartItems'); // Clear cookies
+
       navigate(`/order/${response.data.orderNumber}`);
     } catch (error) {
       console.error("Error creating order:", error);
@@ -176,9 +180,9 @@ const Checkout = ({ cartItems, closeCheckout, proceedToOrder }) => {
             >
               Guest Checkout (Faster)
             </button>
-            <button disabled
+            <button 
               onClick={() => navigate('/login')}
-              className="bg-blue-200 text-white p-2 m-2 rounded hover:bg-blue-100 transition"
+              className="bg-blue-500 text-white p-2 m-2 rounded mr-2 hover:bg-blue-600 transition"
             >
               Create/Login Account
             </button>
