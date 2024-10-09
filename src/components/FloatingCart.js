@@ -29,7 +29,7 @@ const FloatingCart = ({ cartItems, removeFromCart, addToCart, openCheckout, isOp
     for (const item of cartItems) {
       const { productId, variant, branch } = item;
   
-      const response = await fetch('http://localhost:5001/api/products/check-variant-availability', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/products/check-variant-availability`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
