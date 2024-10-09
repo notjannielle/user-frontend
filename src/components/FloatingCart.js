@@ -25,10 +25,10 @@ const FloatingCart = ({ cartItems, removeFromCart, addToCart, openCheckout, isOp
   }, [isOpen, onToggle]);
 
   const checkVariantsAvailability = async () => {
-    setLoading(true); // Set loading before starting checks
+    setLoading(true);
     for (const item of cartItems) {
       const { productId, variant, branch } = item;
-  
+
       const response = await fetch(`${process.env.REACT_APP_API_URL}/products/check-variant-availability`, {
         method: 'POST',
         headers: {
@@ -36,31 +36,17 @@ const FloatingCart = ({ cartItems, removeFromCart, addToCart, openCheckout, isOp
         },
         body: JSON.stringify({ productId, branch, variant }),
       });
-  
+
       const data = await response.json();
-      console.log(`Checking item: ${variant} from ${item.product.name} at ${branch}`);
-  
-      if (data.available) {
-        console.log(`Variant "${variant}" is available in branch "${branch}".`);
-      } else {
-        console.log(`Variant "${variant}" is no longer available. Removing from cart.`);
-        
-        // Alerting the user about the unavailability
-        alert(`The variant "${variant}" from "${item.product.name}" is no longer available at "${branch}" and has been removed from your cart.`);
-        
-        removeFromCart(productId, variant); // Remove from cart if unavailable
+      if (!data.available) {
+        alert(`The variant "${variant}" from "${item.product.name}" is no longer available at "${branch}".`);
+        removeFromCart(productId, variant);
       }
     }
-    setLoading(false); // Set loading to false after checks are done
+    setLoading(false);
   };
-  
 
-  const availableCartItems = cartItems.filter(item => {
-    // This can be updated based on your availability logic if needed
-    return true; // For now, just return all items
-  });
-
-  const groupedByBranch = availableCartItems.reduce((acc, item) => {
+  const groupedByBranch = cartItems.reduce((acc, item) => {
     if (!acc[item.branch]) acc[item.branch] = {};
     
     const productName = item.product.name || 'Unknown Product';
@@ -82,11 +68,11 @@ const FloatingCart = ({ cartItems, removeFromCart, addToCart, openCheckout, isOp
     return acc;
   }, {});
 
-  const totalProducts = availableCartItems.reduce((sum, item) => sum + item.quantity, 0);
-  const totalPrice = availableCartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2);
+  const totalProducts = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const totalPrice = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2);
 
   const handleCheckout = () => {
-    if (availableCartItems.length > 0) {
+    if (cartItems.length > 0) {
       openCheckout();
       onToggle();
     }
@@ -136,6 +122,12 @@ const FloatingCart = ({ cartItems, removeFromCart, addToCart, openCheckout, isOp
                           {Object.keys(groupedByBranch[branch][productName]).map(variantName => {
                             const { quantity, price, productId } = groupedByBranch[branch][productName][variantName];
 
+                            const productItem = cartItems.find(item => item.productId === productId);
+                            if (!productItem || !productItem.product) return null; // Ensure product exists
+
+                            const branchVariants = productItem.product.branches[branch];
+                            const variantIndex = branchVariants.findIndex(v => v.name.trim().toLowerCase() === variantName.trim().toLowerCase());
+
                             return (
                               <div key={variantName} className="ml-4">
                                 <p>{variantName} x {quantity} - ₱{(price * quantity).toFixed(2)}</p>
@@ -147,7 +139,7 @@ const FloatingCart = ({ cartItems, removeFromCart, addToCart, openCheckout, isOp
                                     Remove
                                   </button>
                                   <button 
-                                    onClick={() => handleAddToCart(productId, branch)} 
+                                    onClick={() => handleAddToCart(productId, branch, variantIndex)} 
                                     className="bg-blue-500 text-white p-1 rounded ml-2"
                                   >
                                     Add More
