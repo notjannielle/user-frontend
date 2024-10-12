@@ -205,7 +205,7 @@ const HomePage = ({ selectedCategories, selectedBranch, onCategoryChange, onBran
 
   const proceedToOrder = (orderData) => {
     console.log("Order placed:", orderData);
-    alert("Order placed successfully!");
+   
     closeCheckout();
   };
 

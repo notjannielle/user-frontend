@@ -131,7 +131,7 @@ const OrderTrackingPage = () => {
                 <ul className="pl-4">
                   {variants.map((variant, idx) => (
                     <li key={idx} className="flex justify-between py-1">
-                      <span className="text-gray-700">-- {capitalizeFirstLetter(variant.variant)}  (x{variant.quantity})</span>
+                      <span className="text-gray-700"> {capitalizeFirstLetter(variant.variant)}  (x{variant.quantity})</span>
                       <span className="font-bold">₱{(variant.price * variant.quantity).toFixed(2)}</span>
                     </li>
                   ))}

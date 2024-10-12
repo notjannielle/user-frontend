@@ -5,12 +5,14 @@ import Cookies from 'js-cookie';
 
 const Checkout = ({ cartItems, closeCheckout, proceedToOrder }) => {
   const [checkoutOption, setCheckoutOption] = useState(null);
-  const [guestInfo, setGuestInfo] = useState({ name: '', contact: '' });
+  const [paymentMethod, setPaymentMethod] = useState('cash'); // Default to cash
+  const [guestInfo, setGuestInfo] = useState({ name: '', contact: 'N/A' });
   const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [showGuestModal, setShowGuestModal] = useState(false);
+  const [loading, setLoading] = useState(false); // Loading state
   const navigate = useNavigate();
   const checkoutRef = useRef(null);
-
   const isLoggedIn = Cookies.get('isLoggedIn');
 
   useEffect(() => {
@@ -26,26 +28,30 @@ const Checkout = ({ cartItems, closeCheckout, proceedToOrder }) => {
     };
   }, [closeCheckout]);
 
-  
   const handleGuestCheckout = async (e) => {
     e.preventDefault();
+    setLoading(true); // Start loading
     const orderData = createOrderData(guestInfo);
 
     try {
       const response = await axios.post(`${process.env.REACT_APP_API_URL}/orders`, orderData);
-      
       proceedToOrder(response.data);
       Cookies.remove('cartItems'); // Clear cookies
-
+      setSuccessMessage('Order placed successfully! Redirecting...');
+      
+      // Redirect immediately after placing the order
       navigate(`/order/${response.data.orderNumber}`);
     } catch (error) {
       console.error("Error creating order:", error);
       setErrorMessage('Error creating order. Please try again.');
+    } finally {
+      setLoading(false); // Stop loading
     }
   };
 
   const handleAccountCheckout = async (e) => {
     e.preventDefault();
+    setLoading(true); // Start loading
     const userData = getUserDataFromCookies();
     if (!userData) return;
 
@@ -54,10 +60,16 @@ const Checkout = ({ cartItems, closeCheckout, proceedToOrder }) => {
     try {
       const response = await axios.post(`${process.env.REACT_APP_API_URL}/orders`, orderData);
       proceedToOrder(response.data);
+      Cookies.remove('cartItems'); // Clear cookies
+      setSuccessMessage('Order placed successfully! Redirecting...');
+      
+      // Redirect immediately after placing the order
       navigate(`/order/${response.data.orderNumber}`);
     } catch (error) {
       console.error("Error creating order:", error);
       setErrorMessage('Error creating order. Please try again.');
+    } finally {
+      setLoading(false); // Stop loading
     }
   };
 
@@ -72,6 +84,7 @@ const Checkout = ({ cartItems, closeCheckout, proceedToOrder }) => {
     })),
     total: cartItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0),
     orderNumber: `ORD-${formatDate(new Date())}`,
+    paymentMethod, // Include the payment method here
   });
 
   const getUserDataFromCookies = () => {
@@ -96,11 +109,10 @@ const Checkout = ({ cartItems, closeCheckout, proceedToOrder }) => {
     const year = String(date.getFullYear()).slice(2);
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
-    const seconds = String(date.getSeconds()).padStart(2, '0'); // Add seconds
-  
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+
     return `${year}${month}${day}${hours}${minutes}${seconds}`; // Include seconds in the return
   };
-  
 
   const groupedProducts = cartItems.reduce((acc, item) => {
     const key = item.product._id;
@@ -128,8 +140,6 @@ const Checkout = ({ cartItems, closeCheckout, proceedToOrder }) => {
     if (!str) return '';
     return str.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
   };
-  
-  
 
   return (
     <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center">
@@ -141,24 +151,24 @@ const Checkout = ({ cartItems, closeCheckout, proceedToOrder }) => {
           </button>
         </div>
         {errorMessage && <div className="text-red-600 mb-4">{errorMessage}</div>}
+        {successMessage && <div className="text-green-600 mb-4">{successMessage}</div>}
 
         <h3 className="text-xl font-bold mb-5 flex justify-between">
           <span>📍 {capitalizeBranch(branch)}</span>
         </h3>
 
-        <div className="overflow-y-auto max-h-60 mb-4">
+        <div className="overflow-y-auto max-h-60">
           {Object.values(groupedProducts).map((item, index) => (
             <div key={index} className="mb-4">
               <h3 className="text-lg font-bold">{item.product.name} (Valid QR)</h3>
               {Object.entries(item.variants).map(([variant, { quantity, price }]) => (
-  <div key={variant} className="flex justify-between items-center border-b py-2">
-    <span className="block">
-    - {capitalizeEachWord(variant)} x {quantity}
-    </span>
-    <span className="font-semibold">₱{(price * quantity).toFixed(2)}</span>
-  </div>
-))}
-
+                <div key={variant} className="flex justify-between items-center border-b py-2">
+                  <span className="block">
+                    - {capitalizeEachWord(variant)} x {quantity}
+                  </span>
+                  <span className="font-semibold">₱{(price * quantity).toFixed(2)}</span>
+                </div>
+              ))}
             </div>
           ))}
         </div>
@@ -170,7 +180,7 @@ const Checkout = ({ cartItems, closeCheckout, proceedToOrder }) => {
           </div>
         </div>
 
-        <h3 className="text-xl font-bold mt-4">Select Checkout Options</h3>
+        <h3 className="text-xl font-bold mt-4">Select Checkout Options:</h3>
 
         {!isLoggedIn && (
           <div className="mb-4">
@@ -178,13 +188,7 @@ const Checkout = ({ cartItems, closeCheckout, proceedToOrder }) => {
               onClick={() => setShowGuestModal(true)}
               className="bg-blue-500 text-white p-2 m-2 rounded mr-2 hover:bg-blue-600 transition"
             >
-              Guest Checkout (Faster)
-            </button>
-            <button 
-              onClick={() => navigate('/login')}
-              className="bg-blue-500 text-white p-2 m-2 rounded mr-2 hover:bg-blue-600 transition"
-            >
-              Create/Login Account
+              Guest Checkout (No Login)
             </button>
           </div>
         )}
@@ -193,8 +197,9 @@ const Checkout = ({ cartItems, closeCheckout, proceedToOrder }) => {
           <button
             onClick={handleAccountCheckout}
             className="bg-green-500 text-white p-2 rounded mt-4 hover:bg-green-600 transition"
+            disabled={loading} // Disable when loading
           >
-            Proceed to Order
+            {loading ? 'Processing...' : 'Proceed to Order'}
           </button>
         )}
 
@@ -202,35 +207,75 @@ const Checkout = ({ cartItems, closeCheckout, proceedToOrder }) => {
         {showGuestModal && (
           <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center">
             <div className="bg-white p-6 rounded max-w-md w-full shadow-lg">
-            <div className="flex justify-between items-center mb-4 p-4 bg-gray-100 rounded-t">
-  <div>
-    <h4 className="font-bold text-xl">Guest Checkout: Quick & Easy!</h4>
-    <p className="text-lg font-light">Please fill in your information to proceed with your order.</p>
-  </div>
-  <button onClick={() => setShowGuestModal(false)} className="bg-red-500 text-white p-2 rounded hover:bg-red-600 transition">
-    Close
-  </button>
-</div>
+              <div className="flex justify-between items-center mb-4 p-4 bg-gray-100 rounded-t">
+                <div>
+                  <h4 className="font-bold text-xl">Final Step!</h4>
+                  <p className="text-lg font-light">Please fill in your information to proceed with your order.</p>
+                </div>
+                <button onClick={() => setShowGuestModal(false)} className="bg-red-500 text-white p-2 rounded hover:bg-red-600 transition">
+                  Close
+                </button>
+              </div>
 
               <form onSubmit={handleGuestCheckout}>
+                <h3 className="text-lg font-bold mb-2">Your Name</h3>
+
                 <input
                   type="text"
                   placeholder="Name"
                   value={guestInfo.name}
                   onChange={(e) => setGuestInfo({ ...guestInfo, name: e.target.value })}
                   required
-                  className="border p-2 rounded w-full mb-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  className="border-gray-300 focus:border-blue-500 focus:outline-none p-2 w-full mb-2 transition duration-200"
                 />
+
                 <input
                   type="text"
                   placeholder="Contact (Email/Phone)"
                   value={guestInfo.contact}
                   onChange={(e) => setGuestInfo({ ...guestInfo, contact: e.target.value })}
                   required
-                  className="border p-2 rounded w-full mb-4 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  className="border p-2 hidden rounded w-full mb-4 focus:outline-none focus:ring-2 focus:ring-blue-400"
                 />
-                <button type="submit" className="bg-green-500 text-white p-2 rounded">
-                  Proceed to Order
+
+                <h3 className="text-lg font-bold mb-2">Select Payment Method</h3>
+                <div className="flex flex-col mb-4">
+                  <div className="flex items-center ps-4 border border-gray-200 rounded dark:border-gray-700">
+                    <input
+                      id="payment-cash"
+                      type="radio"
+                      value="cash"
+                      checked={paymentMethod === 'cash'}
+                      onChange={(e) => setPaymentMethod(e.target.value)}
+                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                    />
+                    <label
+                      htmlFor="payment-cash"
+                      className="w-full py-4 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+                    >
+                      Cash
+                    </label>
+                  </div>
+                  <div className="flex items-center ps-4 border border-gray-200 rounded dark:border-gray-700">
+                    <input
+                      id="payment-gcash"
+                      type="radio"
+                      value="gcash"
+                      checked={paymentMethod === 'gcash'}
+                      onChange={(e) => setPaymentMethod(e.target.value)}
+                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                    />
+                    <label
+                      htmlFor="payment-gcash"
+                      className="w-full py-4 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300"
+                    >
+                      GCash
+                    </label>
+                  </div>
+                </div>
+
+                <button type="submit" className="bg-green-500 text-white p-2 rounded" disabled={loading}>
+                  {loading ? 'Processing...' : 'Proceed to Order'}
                 </button>
               </form>
             </div>
