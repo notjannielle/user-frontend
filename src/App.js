@@ -14,19 +14,31 @@ import Cookies from 'js-cookie';
 import OrderPage from './components/OrderPage';
 import BranchSelectModal from './components/BranchSelectModal';
 import SupportPage from './components/SupportPage';
+import PinModal from './components/PinModal'; // Import the PinModal component
+
 const App = () => {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedBranch, setSelectedBranch] = useState("all");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [showBranchModal, setShowBranchModal] = useState(false);
-  
   const [cartItems, setCartItems] = useState(() => {
     const savedItems = Cookies.get('cartItems');
     return savedItems ? JSON.parse(savedItems) : [];
   });
+  const [products, setProducts] = useState([]); // State for products
+  const [isPinEntered, setIsPinEntered] = useState(false);
+  const [showPinModal, setShowPinModal] = useState(false); // Initially hidden
 
-  const [products, setProducts] = useState([]); // Add state for products
+  useEffect(() => {
+    // Check if the PIN was entered within the last 30 minutes
+    const pinTimestamp = Cookies.get('pinTimestamp');
+    if (pinTimestamp && (Date.now() - Number(pinTimestamp) < 30 * 60 * 1000)) {
+      setIsPinEntered(true);
+    } else {
+      setShowPinModal(true); // Show the PIN modal if not entered recently
+    }
+  }, []);
 
   useEffect(() => {
     // Fetch products from your API or source
@@ -78,46 +90,62 @@ const App = () => {
     setShowBranchModal(false);
   };
 
+  const handlePinSuccess = () => {
+    setIsPinEntered(true);
+    setShowPinModal(false); // Hide the PIN modal on success
+    Cookies.set('pinTimestamp', Date.now(), { expires: 1 / 48 }); // Store timestamp for 30 minutes
+  };
+
   return (
     <Router>
       <div className="relative pb-16">
-        <Routes>
-          <Route 
-            path="/" 
-            element={
-              <HomePage 
-                selectedCategories={selectedCategories}
-                selectedBranch={selectedBranch}
-                onCategoryChange={setSelectedCategories}
-                onBranchChange={handleBranchSelect}
-                cartItems={cartItems}
-                setCartItems={setCartItems}
+        {showPinModal && (
+          <PinModal 
+            onClose={() => setShowPinModal(false)} 
+            onPinSuccess={handlePinSuccess} 
+          />
+        )}
+        
+        {isPinEntered && (
+          <>
+            <Navbar isLoggedIn={isLoggedIn} toggleCart={toggleCart} />
+            <FloatingCart 
+              cartItems={cartItems}
+              isOpen={isCartOpen}
+              onToggle={toggleCart}
+              products={products} // Pass products to FloatingCart
+            />
+            <Routes>
+              <Route 
+                path="/" 
+                element={
+                  <HomePage 
+                    selectedCategories={selectedCategories}
+                    selectedBranch={selectedBranch}
+                    onCategoryChange={setSelectedCategories}
+                    onBranchChange={handleBranchSelect}
+                    cartItems={cartItems}
+                    setCartItems={setCartItems}
+                  />
+                } 
               />
-            } 
-          />
-          <Route path="/checkout" element={<Checkout cartItems={cartItems} />} />
-          <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
-          <Route path="/order/:orderNumber" element={<OrderTrackingPage />} />
-          <Route path="/login" element={<LoginPage setIsLoggedIn={setIsLoggedIn} />} />
-          <Route path="/register" element={<RegistrationPage />} />
-          <Route path="/verify-otp" element={<OTPVerificationPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/orders" element={<OrderPage />} />
-          <Route path="/support" element={<SupportPage />} />
-
-        </Routes>
-        <Navbar isLoggedIn={isLoggedIn} toggleCart={toggleCart} />
-        <FloatingCart 
-          cartItems={cartItems}
-          isOpen={isCartOpen}
-          onToggle={toggleCart}
-          products={products} // Pass products to FloatingCart
-        />
-        {showBranchModal && (
-          <BranchSelectModal 
-            onClose={() => setShowBranchModal(false)}
-            onSelect={handleBranchSelect}
-          />
+              <Route path="/checkout" element={<Checkout cartItems={cartItems} />} />
+              <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
+              <Route path="/order/:orderNumber" element={<OrderTrackingPage />} />
+              <Route path="/login" element={<LoginPage setIsLoggedIn={setIsLoggedIn} />} />
+              <Route path="/register" element={<RegistrationPage />} />
+              <Route path="/verify-otp" element={<OTPVerificationPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/orders" element={<OrderPage />} />
+              <Route path="/support" element={<SupportPage />} />
+            </Routes>
+            {showBranchModal && (
+              <BranchSelectModal 
+                onClose={() => setShowBranchModal(false)}
+                onSelect={handleBranchSelect}
+              />
+            )}
+          </>
         )}
       </div>
     </Router>
