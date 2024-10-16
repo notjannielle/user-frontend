@@ -23,6 +23,7 @@ const HomePage = ({ selectedCategories, selectedBranch, onCategoryChange, onBran
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState(''); // State for search term
+  const [announcement, setAnnouncement] = useState(null);
 
   const [cartItems, setCartItems] = useState(() => {
     const savedItems = Cookies.get('cartItems');
@@ -46,6 +47,23 @@ const HomePage = ({ selectedCategories, selectedBranch, onCategoryChange, onBran
 
     fetchProducts();
   }, []);
+
+
+  useEffect(() => {
+    const fetchAnnouncement = async () => {
+      try {
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/announcement`);
+        if (response.data.enabled) {
+          setAnnouncement(response.data.message);
+        }
+      } catch (err) {
+        console.error("Error fetching announcement:", err.response ? err.response.data : err.message);
+      }
+    };
+    
+
+    fetchAnnouncement();
+  }, []); // Fetch announcement once on component mount
 
   const handleBeforeUnload = (event) => {
     if (cartItems.length > 0) {
@@ -232,6 +250,12 @@ const HomePage = ({ selectedCategories, selectedBranch, onCategoryChange, onBran
 
   return (
     <div className="relative pb-16">
+          {/* Announcement Display */}
+          {announcement && (
+  <div className="bg-blue-500 text-white text-center p-4 rounded-md shadow-md">
+          <strong>🚨 Attention Customers! 🚨</strong> {announcement}
+        </div>
+      )}
 <div className="flex items-center justify-center">
   <img src="/logo.png" className="w-20 mt-2 h-20" alt="Logo" />
 </div>
