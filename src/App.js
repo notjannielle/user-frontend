@@ -86,7 +86,7 @@ const App = () => {
 
   const handleBranchSelect = (branchId) => {
     setSelectedBranch(branchId);
-    Cookies.set('selectedBranch', branchId, { expires: 1 });
+    Cookies.set('selectedBranch', branchId, { expires: 10 / 1440 });
     setShowBranchModal(false);
   };
 

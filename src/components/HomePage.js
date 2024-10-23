@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import ProductList from './ProductList';
+import MinimalProductList from './MinimalProductList'; // Import the new minimal list component
 import Filter from './Filter';
 import ProductSidebar from './ProductSidebar';
 import FloatingCart from './FloatingCart';
@@ -8,9 +9,8 @@ import Checkout from './Checkout';
 import Cookies from 'js-cookie';
 import Navbar from './Navbar';
 import { GrBasket } from "react-icons/gr";
-
-import PulseDot from 'react-pulse-dot'
-import 'react-pulse-dot/dist/index.css'
+import PulseDot from 'react-pulse-dot';
+import 'react-pulse-dot/dist/index.css';
 
 const HomePage = ({ selectedCategories, selectedBranch, onCategoryChange, onBranchChange }) => {
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -22,15 +22,60 @@ const HomePage = ({ selectedCategories, selectedBranch, onCategoryChange, onBran
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState(''); // State for search term
+  const [searchTerm, setSearchTerm] = useState('');
   const [announcement, setAnnouncement] = useState(null);
+  const [isMinimalView, setIsMinimalView] = useState(false);
+  const [isSlowConnection, setIsSlowConnection] = useState(false); // Track slow connection state
 
   const [cartItems, setCartItems] = useState(() => {
     const savedItems = Cookies.get('cartItems');
     return savedItems ? JSON.parse(savedItems) : [];
   });
+
+  const toggleView = () => {
+    setIsMinimalView(prev => !prev); // Toggle between minimal and full view
+  };
+
+
+    // Detect slow internet connection (if supported by browser)
+    useEffect(() => {
+      const checkConnection = () => {
+        if (navigator.connection && navigator.connection.downlink) {
+          // downlink is in Mbps
+          if (navigator.connection.downlink < 1.5) { // Assuming below 1.5 Mbps as slow
+            setIsSlowConnection(true);
+          } else {
+            setIsSlowConnection(false);
+          }
+        } else {
+          // If navigator.connection is not available, assume no issues with connection
+          setIsSlowConnection(false);
+        }
+      };
   
-  const [showModal, setShowModal] = useState(false); // State for modal visibility
+      checkConnection(); // Check connection when component mounts
+      window.addEventListener('online', checkConnection); // Check again when user goes online
+      window.addEventListener('offline', () => setIsSlowConnection(true)); // Handle offline event
+  
+      return () => {
+        window.removeEventListener('online', checkConnection);
+        window.removeEventListener('offline', () => setIsSlowConnection(true));
+      };
+    }, []);
+
+
+
+  const selectProduct = (product) => {
+    if (product) {
+      console.log('Product selected:', product);
+      setSelectedProduct(product);
+      setIsSidebarOpen(true);
+    } else {
+      console.error('Product is undefined');
+    }
+  };
+
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -48,7 +93,6 @@ const HomePage = ({ selectedCategories, selectedBranch, onCategoryChange, onBran
     fetchProducts();
   }, []);
 
-
   useEffect(() => {
     const fetchAnnouncement = async () => {
       try {
@@ -60,189 +104,127 @@ const HomePage = ({ selectedCategories, selectedBranch, onCategoryChange, onBran
         console.error("Error fetching announcement:", err.response ? err.response.data : err.message);
       }
     };
-    
 
     fetchAnnouncement();
-  }, []); // Fetch announcement once on component mount
+  }, []);
 
   const handleBeforeUnload = (event) => {
     if (cartItems.length > 0) {
       event.preventDefault();
-      setShowModal(true); // Show modal instead of default prompt
-      return true; // Required for Chrome to show the prompt
+      setShowModal(true);
+      return true;
     }
   };
-
-
 
   const handleSearchChange = (term) => {
     setSearchTerm(term); // Update the search term
   };
 
-  // Filter products based on search term
   const filteredProducts = products.filter(product =>
-    product.name.toLowerCase().includes(searchTerm.toLowerCase()) // Adjust based on your product structure
+    product.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const clearCart = () => {
-    setCartItems([]); // Clear the cart state
-    Cookies.remove('cartItems'); // Clear cookies
+    setCartItems([]);
+    Cookies.remove('cartItems');
   };
 
   useEffect(() => {
-    // Attach beforeunload event listener
     window.addEventListener('beforeunload', handleBeforeUnload);
-    
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, [cartItems]);
 
   const confirmLeave = () => {
-    clearCart(); // Clear cart when confirming leave
+    clearCart();
     setShowModal(false);
-    window.location.reload(); // Reload the page
+    window.location.reload();
   };
 
   const cancelLeave = () => {
     setShowModal(false);
   };
 
-  const selectProduct = (product) => {
-    if (product) {
-      console.log('Product selected:', product);
-      setSelectedProduct(product);
-      setIsSidebarOpen(true);
-    } else {
-      console.error('Product is undefined');
-    }
-  };
-  
   const addToCart = (product, branch, variantIndex) => {
-    if (!product) {
-      console.error('Product is undefined');
-      return;
-    }
-  
-    const productId = product._id;
-    if (!productId) {
-      console.error('Product ID is undefined');
-      return;
-    }
-  
+    if (!product || !product._id) return;
     const branchVariants = product.branches[branch];
-  
-    if (!branchVariants || branchVariants.length === 0) {
-      console.error('No variants available for this branch:', branch);
-      return;
-    }
-  
-    if (variantIndex < 0 || variantIndex >= branchVariants.length) {
-      console.warn('Invalid variant index:', variantIndex, 'for product:', product.name, 'and branch:', branch);
-      return;
-    }
-  
+    if (!branchVariants || branchVariants.length === 0) return;
+
     const variant = branchVariants[variantIndex];
     const existingItemIndex = cartItems.findIndex(item =>
-      item.productId === productId &&
-      item.branch === branch &&
-      item.variant === variant.name
+      item.productId === product._id && item.branch === branch && item.variant === variant.name
     );
-  
+
     let newCartItems;
-  
     if (existingItemIndex !== -1) {
       newCartItems = [...cartItems];
       newCartItems[existingItemIndex].quantity += 1;
     } else {
       newCartItems = [...cartItems];
-      const newItem = {
-        productId: productId,
+      newCartItems.push({
+        productId: product._id,
         branch,
         variant: variant.name,
         quantity: 1,
         price: product.price,
         product,
-      };
-      newCartItems.push(newItem);
+      });
     }
-  
+
     setCartItems(newCartItems);
     Cookies.set('cartItems', JSON.stringify(newCartItems), { expires: 7 });
-  
-    // Set success message
+
     setSuccessMessage(
       <div>
         <strong>{product.name}</strong><br />
         <i>{variant.name}</i> added to cart!
       </div>
     );
-  
-    // Clear success message after 2 seconds
+
     setTimeout(() => {
       setSuccessMessage('');
     }, 5000);
   };
-  
-  
-
-
 
   const removeFromCart = (productId, variantName) => {
     const existingItemIndex = cartItems.findIndex(item =>
       item.productId === productId && item.variant === variantName
     );
-  
+
     if (existingItemIndex !== -1) {
       const newCartItems = [...cartItems];
       const currentQuantity = newCartItems[existingItemIndex].quantity;
-  
+
       if (currentQuantity === 1) {
-        newCartItems.splice(existingItemIndex, 1); // Remove item if quantity is 1
+        newCartItems.splice(existingItemIndex, 1);
       } else {
-        newCartItems[existingItemIndex].quantity -= 1; // Decrease quantity
+        newCartItems[existingItemIndex].quantity -= 1;
       }
-  
+
       setCartItems(newCartItems);
-      Cookies.set('cartItems', JSON.stringify(newCartItems), { expires: 7 }); // Update cookies
+      Cookies.set('cartItems', JSON.stringify(newCartItems), { expires: 7 });
     }
   };
 
-
-
-
-
-
-  const openCheckout = () => {
-    setIsCheckoutOpen(true);
-  };
-
-  const closeCheckout = () => {
-    setIsCheckoutOpen(false);
-  };
+  const openCheckout = () => setIsCheckoutOpen(true);
+  const closeCheckout = () => setIsCheckoutOpen(false);
 
   const proceedToOrder = (orderData) => {
     console.log("Order placed:", orderData);
-   
     closeCheckout();
   };
 
-  const toggleCart = () => {
-    setIsCartOpen(prev => !prev);
-  };
-
-  const closeSidebar = () => {
-    setIsSidebarOpen(false);
-    setSelectedProduct(null);
-  };
+  const toggleCart = () => setIsCartOpen(prev => !prev);
+  const closeSidebar = () => setIsSidebarOpen(false);
 
   const handleBranchSelect = (branch) => {
     onBranchChange(branch);
-    clearCart(); // Clear the cart when changing branches
-    Cookies.remove('cartItems'); // Clear cookies
-
+    clearCart();
+    Cookies.remove('cartItems');
   };
 
+  
   const totalCartItems = cartItems.reduce((total, item) => total + item.quantity, 0);
 
   if (loading) return <p>Loading products...</p>;
@@ -250,58 +232,86 @@ const HomePage = ({ selectedCategories, selectedBranch, onCategoryChange, onBran
 
   return (
     <div className="relative pb-16">
-          {/* Announcement Display */}
-          {announcement && (
-  <div className="bg-blue-500 text-white text-center p-4 rounded-md shadow-md">
+      {announcement && (
+        <div className="bg-blue-500 text-white text-center p-4 rounded-md shadow-md">
           <strong>🚨 Attention Customers! 🚨</strong> {announcement}
         </div>
       )}
-<div className="flex items-center justify-center">
-  <img src="/logo.png" className="w-20 mt-2 h-20" alt="Logo" />
-</div>
-      <Filter 
+
+      <div className="flex items-center justify-center">
+        <img src="/logo.png" className="w-20 mt-2 h-20" alt="Logo" />
+      </div>
+
+      <Filter
         categories={["Disposables", "Pods", "Juices", "Devices", "Misc"]}
         branches={["main", "second", "third"]}
         selectedCategories={selectedCategories}
         selectedBranch={selectedBranch}
         onCategoryChange={onCategoryChange}
         onBranchChange={handleBranchSelect}
-        onClearCart={clearCart} 
-        onSearchChange={handleSearchChange} // Pass the search change handler
-
+        onClearCart={clearCart}
+        onSearchChange={handleSearchChange}
       />
-      
-      <ProductList 
-        selectProduct={selectProduct} 
-        selectedCategories={selectedCategories} 
-        selectedBranch={selectedBranch} 
-        products={filteredProducts} // Use filtered products
-      />
-<div className="fixed bottom-20 right-4">
-  <div className="relative">
-    <PulseDot color='#3f83f8' style={{ fontSize: '3em', position: 'absolute', top: '-20%', right: '-24%', zIndex: 0 }} />
-    <button onClick={toggleCart} className="bg-blue-500 p-3 rounded-full flex items-center relative z-10">
-      <GrBasket className="text-white w-10 h-10" />
-      <span className="absolute -top-0 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center z-10">
-        {totalCartItems}
-      </span>
-    </button>
-  </div>
-</div>
+   <div className="flex flex-col items-center justify-center min-h-screen p-4">
+      {/* Show the slow connection warning if detected */}
+      {isSlowConnection && (
+        <div className="bg-yellow-500 text-white p-4 rounded-md mb-4">
+          <strong>Warning:</strong> Your internet connection seems slow. Please bear with us while we load the content.
+        </div>
+      )}
 
+      {/* Toggle Button */}
+      <div className="mb-4">
+        <button
+          onClick={toggleView}
+          className="bg-blue-500 text-white p-3 rounded shadow hover:bg-blue-700 transition"
+        >
+          {isMinimalView ? 'Switch to Full View' : 'Switch to Minimal View'}
+        </button>
+      </div>
+
+      {/* Conditional Rendering of Product Lists */}
+      {isMinimalView ? (
+        <MinimalProductList
+          selectProduct={selectProduct}
+          selectedCategories={selectedCategories}
+          selectedBranch={selectedBranch}
+          products={filteredProducts}
+        />
+      ) : (
+        <ProductList
+          selectProduct={selectProduct}
+          selectedCategories={selectedCategories}
+          selectedBranch={selectedBranch}
+          products={filteredProducts}
+        />
+      )}
+    </div>
+
+      <div className="fixed bottom-20 right-4">
+        <div className="relative">
+          <PulseDot color='#3f83f8' style={{ fontSize: '3em', position: 'absolute', top: '-20%', right: '-24%', zIndex: 0 }} />
+          <button onClick={toggleCart} className="bg-blue-500 p-3 rounded-full flex items-center relative z-10">
+            <GrBasket className="text-white w-10 h-10" />
+            <span className="absolute -top-0 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center z-10">
+              {totalCartItems}
+            </span>
+          </button>
+        </div>
+      </div>
 
       {isSidebarOpen && selectedProduct && (
-        <ProductSidebar 
-          product={selectedProduct} 
-          addToCart={addToCart} 
-          closeSidebar={closeSidebar} 
+        <ProductSidebar
+          product={selectedProduct}
+          addToCart={addToCart}
+          closeSidebar={closeSidebar}
         />
       )}
 
-      <FloatingCart 
+      <FloatingCart
         cartItems={cartItems}
-        removeFromCart={removeFromCart} 
-        addToCart={addToCart} // Pass addToCart to FloatingCart
+        removeFromCart={removeFromCart}
+        addToCart={addToCart}
         openCheckout={openCheckout}
         isOpen={isCartOpen}
         onToggle={toggleCart}
@@ -314,15 +324,15 @@ const HomePage = ({ selectedCategories, selectedBranch, onCategoryChange, onBran
           proceedToOrder={proceedToOrder}
         />
       )}
+
       {successMessage && (
         <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-green-500 text-white p-3 rounded-md">
           {successMessage}
         </div>
       )}
-      <Navbar 
-        toggleCart={toggleCart} 
-      />
-      
+
+      <Navbar toggleCart={toggleCart} />
+
       {showModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white p-5 rounded shadow">

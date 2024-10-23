@@ -29,7 +29,7 @@ const Filter = ({
   const handleBranchChange = (selectedOption) => {
     const branch = selectedOption.value;
     onBranchChange(branch);
-    Cookies.set('selectedBranch', branch, { expires: 6 });
+Cookies.set('selectedBranch', branch, { expires: 10 / 1440 }); // 10 minutes
     onClearCart(); // Clear the cart when changing branches
     window.location.reload(); // Refresh the page
   };
