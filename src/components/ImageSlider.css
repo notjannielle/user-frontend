@@ -30,14 +30,18 @@
   cursor: pointer;
   padding: 10px;
   z-index: 10; /* Increased z-index */
+  display: none;
+
 }
 
 .left-arrow {
   left: 10px;
+  display: none;
 }
 
 .right-arrow {
   right: 10px;
+  display: none;
 }
 
 .pagination {
