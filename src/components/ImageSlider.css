@@ -1,0 +1,111 @@
+/* Center the slider */
+.slider-container {
+  position: relative;
+  width: 400px; /* Fixed width */
+  margin: 0 auto; /* Center the container */
+  overflow: hidden;
+}
+
+.slides {
+  display: flex;
+  transition: transform 0.5s ease;
+}
+
+.slide {
+  min-width: 100%;
+}
+
+.slide-image {
+  width: 100%;
+  height: 300px; /* Fixed height */
+  object-fit: cover;
+}
+
+.arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(255, 255, 255, 0.7);
+  border: none;
+  cursor: pointer;
+  padding: 10px;
+  z-index: 10; /* Increased z-index */
+}
+
+.left-arrow {
+  left: 10px;
+}
+
+.right-arrow {
+  right: 10px;
+}
+
+.pagination {
+  text-align: center;
+  margin-top: 10px;
+}
+
+.dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin: 0 5px;
+  border-radius: 50%;
+  background-color: lightgray;
+  cursor: pointer;
+}
+
+.dot.active {
+  background-color: gray;
+}
+
+/* Modal styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center; /* Center the content vertically */
+  justify-content: center; /* Center the content horizontally */
+  z-index: 1000;
+}
+
+.modal-content {
+  position: relative;
+  max-width: 90%; /* Allow some padding from edges */
+  max-height: 90%; /* Allow some padding from edges */
+}
+
+.close {
+  position: fixed; /* Fixed positioning */
+  top: 20px; /* Adjusted for better visibility */
+  right: 20px; /* Adjusted for better visibility */
+  font-size: 30px;
+  color: white;
+  cursor: pointer;
+  z-index: 1001; /* Ensure it's above other content */
+}
+
+.modal-image {
+  width: 100%; /* Full width of modal */
+  height: auto; /* Maintain aspect ratio */
+  max-height: 90vh; /* Limit height to prevent overflow */
+}
+
+/* Responsive design */
+@media (min-width: 768px) {
+  .modal-image {
+    max-width: 80%; /* Constrain the width on larger screens */
+    max-height: 80%; /* Constrain the height on larger screens */
+  }
+}
+
+/* Separation line */
+.separator {
+  width: 100%;
+  border: 1px solid #ccc;
+  margin-top: 20px;
+}

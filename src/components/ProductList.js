@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { BsBasket } from "react-icons/bs";
+import ImageSlider from './ImageSlider'; // Import the ImageSlider
 
 const ProductList = ({ selectProduct, selectedCategories, selectedBranch, products }) => {
-  const [searchQuery, setSearchQuery] = useState(''); // Step 1: State for search query
+  const [searchQuery, setSearchQuery] = useState('');
 
   const filteredProducts = products.filter((product) => {
     const categoryMatch = selectedCategories.length === 0 || selectedCategories.includes(product.category);
@@ -10,10 +11,9 @@ const ProductList = ({ selectProduct, selectedCategories, selectedBranch, produc
     const branchMatch = selectedBranch === 'all' || 
       (Array.isArray(branchVariants) && branchVariants.some(variant => variant.available));
     
-    // Step 3: Match against search query
     const nameMatch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
 
-    return categoryMatch && branchMatch && nameMatch; // Include nameMatch
+    return categoryMatch && branchMatch && nameMatch;
   });
 
   const capitalizeFirstLetter = (string) => {
@@ -25,11 +25,10 @@ const ProductList = ({ selectProduct, selectedCategories, selectedBranch, produc
 
   return (
     <div>
-      {/* Step 2: Search Input */}
-
+      <ImageSlider /> {/* Include the slider here */}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 p-4">
-      {filteredProducts.length > 0 ? (
+        {filteredProducts.length > 0 ? (
           filteredProducts.map((product) => {
             const branchVariants = product.branches && product.branches[selectedBranch] || [];
             const availableVariants = branchVariants.filter(variant => variant.available);
@@ -40,13 +39,11 @@ const ProductList = ({ selectProduct, selectedCategories, selectedBranch, produc
                 className={`relative overflow-hidden rounded-lg shadow-lg cursor-pointer transition-transform duration-300 transform hover:scale-105 ${availableVariants.length === 0 ? 'line-through text-gray-500' : 'bg-white border border-gray-300'}`}
                 onClick={() => availableVariants.length > 0 && selectProduct(product)}
               >
-                {/* Image Section */}
                 <img 
                   src={product.image} 
                   alt={product.name} 
                   className="h-48 w-full object-cover transition-transform duration-300 transform hover:scale-110" 
                 />
-                {/* Content Section */}
                 <div className="p-4">
                   <h2 className={`text-lg font-semibold mb-2 ${availableVariants.length === 0 ? 'line-through' : ''}`}>
                     {product.name}
@@ -61,7 +58,6 @@ const ProductList = ({ selectProduct, selectedCategories, selectedBranch, produc
                     </div>
                   </div>
                 </div>
-                {/* Overlay for hover effect */}
                 <div className="absolute inset-0 bg-black bg-opacity-25 opacity-0 transition-opacity duration-300 hover:opacity-100 flex items-center justify-center">
                   <BsBasket className="text-white text-2xl" />
                 </div>
