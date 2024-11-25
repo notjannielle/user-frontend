@@ -25,6 +25,13 @@ const SupportPage = () => {
       profileUrl: "https://www.facebook.com/profile.php?id=61562211176943",
       messageUrl: "https://m.me/61562211176943",
     },
+    {
+      name: "Fourth Branch",
+      address: "---",
+      imageUrl: "/logo.png",
+      profileUrl: "https://www.facebook.com/profile.php?id=61562211176943",
+      messageUrl: "https://m.me/61562211176943",
+    },
   ];
 
   return (

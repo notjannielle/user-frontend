@@ -70,6 +70,7 @@ const OrderTrackingPage = () => {
           <p className="text-sm font-medium">📍 Main: 1709 Piy Margal</p>
           <p className="text-sm font-medium">📍 Second: 1767 Honradez</p>
           <p className="text-sm font-medium">📍 Third: 2201 G. Tuazon</p>
+          <p className="text-sm font-medium">📍 Fourth: ----</p>
           <p className="text-sm font-medium">🕐 1:00pm - 11:00pm daily</p>
         </div>
       </div>

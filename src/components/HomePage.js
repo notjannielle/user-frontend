@@ -244,7 +244,7 @@ const HomePage = ({ selectedCategories, selectedBranch, onCategoryChange, onBran
 
       <Filter
         categories={["Disposables", "Pods", "Juices", "Devices", "Misc"]}
-        branches={["main", "second", "third"]}
+        branches={["main", "second", "third", "fourth"]}
         selectedCategories={selectedCategories}
         selectedBranch={selectedBranch}
         onCategoryChange={onCategoryChange}

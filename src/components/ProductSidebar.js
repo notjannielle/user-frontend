@@ -27,6 +27,7 @@ const ProductSidebar = ({ product, addToCart, closeSidebar }) => {
     main: 'Main Branch',
     second: 'Second Branch',
     third: 'Third Branch',
+    fourth: 'Fourth Branch',
   };
 
   const branches = Object.keys(branchNames);

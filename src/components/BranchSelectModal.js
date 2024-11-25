@@ -6,6 +6,8 @@ const branchesData = [
   { id: "main", name: "Main Branch", address: "Piy Margal", imgSrc: "/logo.png" },
   { id: "second", name: "Second Branch", address: "Honradez", imgSrc: "/logo.png" },
   { id: "third", name: "Third Branch", address: "G.Tuazon", imgSrc: "/logo.png" },
+  { id: "fourth", name: "Fourth Branch", address: "", imgSrc: "/logo.png" },
+
 ];
 
 const BranchSelectModal = ({ onClose, onSelect }) => {
